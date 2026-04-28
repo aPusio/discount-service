@@ -1,0 +1,9 @@
+###
+POST http://localhost:8080/v1/api/coupons
+Content-Type: application/json
+
+{
+  "code": "discout",
+  "maxUsages": 50,
+  "countryCode": "PL"
+}

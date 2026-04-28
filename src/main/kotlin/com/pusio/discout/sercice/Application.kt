@@ -1,4 +1,4 @@
-package com.pusio.com.pusio.discout.sercice
+package com.pusio.discout.sercice
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication

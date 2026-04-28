@@ -3,6 +3,7 @@ plugins {
     id("org.springframework.boot") version "3.5.3"
     id("io.spring.dependency-management") version "1.1.7"
     kotlin("plugin.spring") version "2.3.10"
+    kotlin("plugin.jpa") version "2.3.10"
 }
 
 group = "com.pusio"
@@ -19,6 +20,7 @@ dependencies {
     implementation("org.postgresql:postgresql:42.6.0")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.slf4j:slf4j-api:2.0.9")
+    implementation("org.liquibase:liquibase-core")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation(kotlin("test"))
 }

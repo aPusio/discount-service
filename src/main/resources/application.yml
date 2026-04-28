@@ -10,9 +10,11 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
-  sql:
-    init:
-      mode: always
+        jdbc:
+          time_zone: UTC
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    enabled: true
 logging:
   level:
     root: INFO
