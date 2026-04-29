@@ -5,17 +5,20 @@ import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.persistence.LockModeType
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.Version
 import org.hibernate.annotations.CreationTimestamp
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Lock
 import org.springframework.stereotype.Repository
 import java.time.OffsetDateTime
 import java.util.UUID
 
 @Repository
 interface CouponRepository : JpaRepository<CouponEntity, UUID> {
+    @Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)
     fun findByCodeNormalized(codeNormalized: String): CouponEntity?
 }
 
@@ -43,9 +46,6 @@ class CouponEntity(
     @CreationTimestamp
     @Column(name = "created_at", nullable = false)
     lateinit var createdAt: OffsetDateTime
-
-    @Column(name = "current_usages")
-    var currentUsages: Int = 0
 
     @Version
     @Column(name = "version")

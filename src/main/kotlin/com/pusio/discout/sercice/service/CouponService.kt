@@ -46,9 +46,6 @@ class CouponService(
 
         validate(coupon, useCouponRequest)
 
-        //TODO replace it with select that will count usages
-        coupon.currentUsages++
-
         couponUsageRepository.save(
             CouponUsageEntity(
                 coupon = coupon,
@@ -78,7 +75,9 @@ class CouponService(
             throw CouponAlreadyUsedException("Coupon ${coupon.code} was already used by user ${useCouponRequest.userId}")
         }
 
-        if (coupon.currentUsages >= coupon.maxUsages) {
+        val usages = couponUsageRepository.countByCouponId(coupon.id)
+
+        if (usages >= coupon.maxUsages) {
             throw CouponUsageLimitExceededException("Coupon usage limit exceeded. Coupon ${coupon.code} exceed ${coupon.maxUsages} usages")
         }
     }
@@ -100,6 +99,7 @@ private fun CreateCouponRequest.toCouponEntity() = CouponEntity(
     countryCode = this.countryCode,
 )
 
+//TODO add rest handler for them
 class CouponAlreadyExistsException(msg: String) : RuntimeException(msg)
 class CouponNotFoundException(msg: String) : RuntimeException(msg)
 class InvalidCouponUserCountryException(msg: String) : RuntimeException(msg)

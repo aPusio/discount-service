@@ -21,6 +21,8 @@ interface CouponUsageRepository : JpaRepository<CouponUsageEntity, UUID> {
         couponId: UUID,
         userId: UUID
     ): Boolean
+
+    fun countByCouponId(couponId: UUID): Long
 }
 
 @Entity
