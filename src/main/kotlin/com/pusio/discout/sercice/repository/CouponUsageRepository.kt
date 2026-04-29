@@ -26,12 +26,6 @@ interface CouponUsageRepository : JpaRepository<CouponUsageEntity, UUID> {
 @Entity
 @Table(
     name = "coupon_usages",
-//    uniqueConstraints = [
-//        UniqueConstraint(
-//            name = "uq_coupon_usage_coupon_user",
-//            columnNames = ["coupon_id", "user_id"]
-//        )
-//    ]
 )
 class CouponUsageEntity(
 

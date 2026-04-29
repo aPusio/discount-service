@@ -9,9 +9,17 @@ import com.pusio.discout.sercice.repository.CouponUsageEntity
 import com.pusio.discout.sercice.repository.CouponUsageRepository
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.orm.ObjectOptimisticLockingFailureException
+import org.springframework.retry.annotation.Backoff
+import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
+@Retryable(
+    retryFor = [ObjectOptimisticLockingFailureException::class],
+    maxAttempts = 3,
+    backoff = Backoff(delay = 50)
+)
 @Service
 class CouponService(
     private val couponRepository: CouponRepository,
@@ -41,7 +49,6 @@ class CouponService(
         //TODO replace it with select that will count usages
         coupon.currentUsages++
 
-        //TODO Optimistic locking ?
         couponUsageRepository.save(
             CouponUsageEntity(
                 coupon = coupon,
