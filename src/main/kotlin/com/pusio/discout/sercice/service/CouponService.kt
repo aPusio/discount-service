@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional
 class CouponService(
     private val couponRepository: CouponRepository,
     private val couponUsageRepository: CouponUsageRepository,
+    private val ipService: IpService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -44,7 +45,7 @@ class CouponService(
         val coupon = couponRepository.findByCodeNormalized(normalizedCode)
             ?: throw CouponNotFoundException("Coupon with code ${useCouponRequest.code} not found")
 
-        validate(coupon, useCouponRequest)
+        validate(coupon, useCouponRequest, clientIp)
 
         couponUsageRepository.save(
             CouponUsageEntity(
@@ -57,11 +58,11 @@ class CouponService(
 
     private fun validate(
         coupon: CouponEntity,
-        useCouponRequest: UseCouponRequest
+        useCouponRequest: UseCouponRequest,
+        clientIp: String
     ) {
-        //TODO use service to get ip
-        val userCountry = "PL"
 
+        val userCountry = ipService.getCountryCode(clientIp)
         if (coupon.countryCode != userCountry) {
             throw InvalidCouponUserCountryException("Coupon ${coupon.code} cannot be used by user ${useCouponRequest.userId}. Incorrect country: ${coupon.countryCode} != $userCountry")
         }
@@ -70,13 +71,11 @@ class CouponService(
             coupon.id,
             useCouponRequest.userId
         )
-
         if (alreadyUsed) {
             throw CouponAlreadyUsedException("Coupon ${coupon.code} was already used by user ${useCouponRequest.userId}")
         }
 
         val usages = couponUsageRepository.countByCouponId(coupon.id)
-
         if (usages >= coupon.maxUsages) {
             throw CouponUsageLimitExceededException("Coupon usage limit exceeded. Coupon ${coupon.code} exceed ${coupon.maxUsages} usages")
         }

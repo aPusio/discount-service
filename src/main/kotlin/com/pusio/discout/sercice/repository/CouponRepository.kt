@@ -1,20 +1,12 @@
 package com.pusio.discout.sercice.repository
 
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
-import jakarta.persistence.LockModeType
-import jakarta.persistence.OneToMany
-import jakarta.persistence.Table
-import jakarta.persistence.Version
+import jakarta.persistence.*
 import org.hibernate.annotations.CreationTimestamp
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Lock
 import org.springframework.stereotype.Repository
 import java.time.OffsetDateTime
-import java.util.UUID
+import java.util.*
 
 @Repository
 interface CouponRepository : JpaRepository<CouponEntity, UUID> {
