@@ -7,3 +7,12 @@ Content-Type: application/json
   "maxUsages": 50,
   "countryCode": "PL"
 }
+
+###
+POST http://localhost:8080/v1/api/coupons/use
+Content-Type: application/json
+
+{
+  "code": "discout",
+  "userId": "a27c4240-65aa-46c0-bd80-01438ebd2535"
+}

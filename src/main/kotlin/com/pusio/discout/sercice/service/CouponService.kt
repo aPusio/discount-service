@@ -5,15 +5,18 @@ import com.pusio.discout.sercice.controller.CreateCouponResponse
 import com.pusio.discout.sercice.controller.UseCouponRequest
 import com.pusio.discout.sercice.repository.CouponEntity
 import com.pusio.discout.sercice.repository.CouponRepository
+import com.pusio.discout.sercice.repository.CouponUsageEntity
+import com.pusio.discout.sercice.repository.CouponUsageRepository
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
-import java.time.OffsetDateTime
+import org.springframework.transaction.annotation.Transactional
 
 @Service
-class CouponService (
+class CouponService(
     private val couponRepository: CouponRepository,
-){
+    private val couponUsageRepository: CouponUsageRepository,
+) {
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun createCoupon(request: CreateCouponRequest): CreateCouponResponse {
@@ -23,17 +26,58 @@ class CouponService (
             log.info("Created coupon id=${saved.id} code=${saved.codeNormalized}")
             return saved.toCreateCouponResponse()
         } catch (_: DataIntegrityViolationException) {
-            log.warn("Attempt to create duplicate coupon code: ${coupon.code}")
-            throw CouponAlreadyExistsException("Coupon with code ${coupon.code} already exists")
+            throw CouponAlreadyExistsException("Attempt to create duplicate coupon code: ${coupon.code}")
         }
     }
 
+    @Transactional
     fun useCoupon(useCouponRequest: UseCouponRequest, clientIp: String) {
-        TODO("Not yet implemented")
+        val normalizedCode = useCouponRequest.code.trim().lowercase()
+        val coupon = couponRepository.findByCodeNormalized(normalizedCode)
+            ?: throw CouponNotFoundException("Coupon with code ${useCouponRequest.code} not found")
+
+        validate(coupon, useCouponRequest)
+
+        //TODO replace it with select that will count usages
+        coupon.currentUsages++
+
+        //TODO Optimistic locking ?
+        couponUsageRepository.save(
+            CouponUsageEntity(
+                coupon = coupon,
+                userId = useCouponRequest.userId
+            )
+        )
+        log.info("Coupon ${coupon.code} used successfully by user ${useCouponRequest.userId}")
+    }
+
+    private fun validate(
+        coupon: CouponEntity,
+        useCouponRequest: UseCouponRequest
+    ) {
+        //TODO use service to get ip
+        val userCountry = "PL"
+
+        if (coupon.countryCode != userCountry) {
+            throw InvalidCouponUserCountryException("Coupon ${coupon.code} cannot be used by user ${useCouponRequest.userId}. Incorrect country: ${coupon.countryCode} != $userCountry")
+        }
+
+        val alreadyUsed = couponUsageRepository.existsByCouponIdAndUserId(
+            coupon.id,
+            useCouponRequest.userId
+        )
+
+        if (alreadyUsed) {
+            throw CouponAlreadyUsedException("Coupon ${coupon.code} was already used by user ${useCouponRequest.userId}")
+        }
+
+        if (coupon.currentUsages >= coupon.maxUsages) {
+            throw CouponUsageLimitExceededException("Coupon usage limit exceeded. Coupon ${coupon.code} exceed ${coupon.maxUsages} usages")
+        }
     }
 }
 
-private fun CouponEntity.toCreateCouponResponse() =  CreateCouponResponse(
+private fun CouponEntity.toCreateCouponResponse() = CreateCouponResponse(
     code = this.code,
     maxUsages = this.maxUsages,
     countryCode = this.countryCode,
@@ -49,4 +93,8 @@ private fun CreateCouponRequest.toCouponEntity() = CouponEntity(
     countryCode = this.countryCode,
 )
 
-class CouponAlreadyExistsException(msg: String): RuntimeException(msg)
+class CouponAlreadyExistsException(msg: String) : RuntimeException(msg)
+class CouponNotFoundException(msg: String) : RuntimeException(msg)
+class InvalidCouponUserCountryException(msg: String) : RuntimeException(msg)
+class CouponAlreadyUsedException(msg: String) : RuntimeException(msg)
+class CouponUsageLimitExceededException(msg: String) : RuntimeException(msg)

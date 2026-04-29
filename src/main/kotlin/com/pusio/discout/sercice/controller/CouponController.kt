@@ -47,17 +47,13 @@ data class CreateCouponResponse(
 )
 
 data class CreateCouponRequest(
-    @field:NotBlank
     val code: String,
     @field:Min(1)
     val maxUsages: Int,
-    @field:NotBlank
     val countryCode: String
 )
 
 data class UseCouponRequest(
-    @field:NotBlank
     val code: String,
-    @field:NotBlank
-    val userId: String
+    val userId: UUID
 )

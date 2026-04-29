@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX ux_coupon_code_normalized ON coupons (code_normalized);
